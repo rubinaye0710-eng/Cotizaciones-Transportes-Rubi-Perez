@@ -18,10 +18,8 @@
         .btn-del { background: #dc3545; color: white; padding: 8px 12px; font-size: 12px; }
 
         /* Estilos para el PDF */
-        #printable { display: none; width: 850px; margin: 0 auto; background: white; padding: 40px; }
+        #printable { display: none; width: 850px; margin: 0 auto; background: white; padding: 40px; position: relative; min-height: 1000px; }
         .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        
-        /* Logos en las esquinas */
         .logo-img { width: 120px; height: auto; }
         
         .business-name { font-weight: bold; font-size: 22px; margin: 0; text-transform: uppercase; }
@@ -31,7 +29,19 @@
         .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .data-table th, .data-table td { border: 1px solid black; padding: 10px; text-align: left; }
         .data-table th { background: #ffffff; text-align: center; font-weight: bold; }
+        
         .info-line { border-bottom: 1px solid #000; display: inline-block; padding-left: 5px; }
+        .no-line { border-bottom: none !important; }
+
+        /* Derechos reservados al final */
+        .footer-rights { 
+            margin-top: 50px; 
+            text-align: center; 
+            font-size: 12px; 
+            color: #555; 
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
 
         @media print {
             .form-container { display: none; }
@@ -79,13 +89,12 @@
         </tr>
     </table>
 
-    <!-- "COTIZACION" centrado -->
     <p class="bold-text text-center" style="margin: 20px 0; font-size: 18px;">COTIZACION</p>
 
     <div style="width: 100%;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
             <span class="bold-text" style="width: 70%;">Cliente: <span id="out-cliente" class="info-line" style="width: 80%;"></span></span>
-            <span class="bold-text" style="width: 30%; text-align: right;">Fecha: <span id="out-fecha" class="info-line" style="width: 60%;"></span></span>
+            <span class="bold-text" style="width: 30%; text-align: right;">Fecha: <span id="out-fecha" class="info-line no-line" style="width: 60%;"></span></span>
         </div>
         <div class="bold-text">
             Dirección: <span id="out-dir" class="info-line" style="width: 89%;"></span>
@@ -113,6 +122,10 @@
     <div style="margin-top: 80px; display: flex; justify-content: space-around;">
         <div style="border-top: 1px solid black; width: 220px; text-align: center; padding-top: 5px;">Entregué Conforme</div>
         <div style="border-top: 1px solid black; width: 220px; text-align: center; padding-top: 5px;">Recibí Conforme</div>
+    </div>
+
+    <div class="footer-rights">
+        © <span id="year"></span> Transporte Hermanos Rubí Pérez. Todos los derechos reservados.
     </div>
 </div>
 
@@ -166,12 +179,12 @@
         document.getElementById('out-total').innerText = 'C$' + total.toLocaleString('en-US', {minimumFractionDigits: 2});
     }
 
-    // Fecha automática de hoy
     const hoy = new Date();
     const dia = hoy.getDate().toString().padStart(2, '0');
     const mes = (hoy.getMonth() + 1).toString().padStart(2, '0');
     const anio = hoy.getFullYear();
     document.getElementById('out-fecha').innerText = `${dia}/${mes}/${anio}`;
+    document.getElementById('year').innerText = anio;
 </script>
 
 </body>
