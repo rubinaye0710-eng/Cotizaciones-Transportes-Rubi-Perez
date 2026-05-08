@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Generador de Cotizaciones - Transporte Hermanos Rubí</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #eef2f3; padding: 20px; }
+        .form-container { 
+            background: white; max-width: 600px; margin: 0 auto; 
+            padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        }
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        /* Botones del formulario */
+        button { padding: 12px; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; }
+        .btn-add { background: #28a745; color: white; width: 100%; margin-top: 10px; }
+        .btn-print { background: #0056b3; color: white; width: 100%; margin-top: 20px; }
+        .btn-del { background: #dc3545; color: white; padding: 8px 12px; font-size: 12px; }
+        .btn-del:hover { background: #a71d2a; }
+
+        /* Estilos para el PDF */
+        #printable { display: none; width: 850px; margin: 0 auto; background: white; padding: 40px; }
+        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .header-table td { vertical-align: middle; text-align: center; }
+        .logo-img { width: 120px; height: auto; }
+        .business-name { font-weight: bold; font-size: 22px; margin: 0; text-transform: uppercase; }
+        .bold-text { font-weight: bold; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .data-table th, .data-table td { border: 1px solid black; padding: 10px; text-align: left; }
+        .data-table th { background: #ffffff; text-align: center; font-weight: bold; }
+        .info-line { border-bottom: 1px solid #000; display: inline-block; padding-left: 5px; }
+
+        @media print {
+            .form-container { display: none; }
+            #printable { display: block; }
+            body { background: white; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Nueva Cotización</h2>
+    <label>Cliente:</label>
+    <input type="text" id="in-cliente" placeholder="Nombre del cliente" oninput="sincronizar()">
+    
+    <label style="display:block; margin-top:10px;">Dirección:</label>
+    <input type="text" id="in-dir" placeholder="Dirección del servicio" oninput="sincronizar()">
+    
+    <hr>
+    <h4>Productos / Servicios</h4>
+    <div id="items-container">
+        <div class="input-group">
+            <input type="text" class="item-desc" placeholder="Descripción" oninput="sincronizar()">
+            <input type="number" class="item-valor" style="width: 150px;" placeholder="Monto C$" oninput="sincronizar()">
+            <button class="btn-del" onclick="eliminarFila(this)">X</button>
+        </div>
+    </div>
+    <button class="btn-add" onclick="agregarFila()">+ Agregar otro producto</button>
+    
+    <button class="btn-print" onclick="window.print()">GENERAR PDF / IMPRIMIR</button>
+</div>
+
+<div id="printable">
+    <table class="header-table">
+        <tr>
+            <td style="width: 20%; text-align: left;"><img src="file:///C:/Users/DELL/OneDrive/Documentos/transporte/logo.png" class="logo-img"></td>
+            <td style="width: 60%;">
+                <p class="business-name">TRANSPORTE HERMANOS RUBÍ PÉREZ</p>
+                <p class="bold-text" style="margin: 5px 0;">Eddy Octavio Rubí Perez</p>
+                <p style="margin: 2px 0;">Propietario</p>
+                <p style="margin: 2px 0;">Ofrecemos los servicios de acarreos</p>
+                <p style="margin: 2px 0; font-size: 13px;">Tope Duque Estrada 4c. al Norte 4c. Abajo ½ al Norte.</p>
+                <p class="bold-text" style="margin: 2px 0; font-size: 13px;">RUC: 2810606870011D / Cel: 5797-3597 - 82449188</p>
+            </td>
+            <td style="width: 20%; text-align: right;"><img src="file:///C:/Users/DELL/OneDrive/Documentos/transporte/logo.png" class="logo-img"></td>
+        </tr>
+    </table>
+
+    <p class="bold-text" style="margin-bottom: 20px;">COTIZACION</p>
+
+    <div style="width: 100%;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span class="bold-text" style="width: 70%;">Cliente: <span id="out-cliente" class="info-line" style="width: 80%;"></span></span>
+            <span class="bold-text" style="width: 30%; text-align: right;">Fecha: <span id="out-fecha" class="info-line" style="width: 60%;"></span></span>
+        </div>
+        <div class="bold-text">
+            Dirección: <span id="out-dir" class="info-line" style="width: 44.5%;"></span>
+        </div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 10%;">CANT.</th>
+                <th>DESCRIPCIÓN</th>
+                <th style="width: 15%;">UNIT</th>
+                <th style="width: 20%;">VALOR</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-cuerpo"></tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" style="text-align: right; border: none;"><span class="bold-text">TOTAL</span></td>
+                <td id="out-total" class="bold-text" style="text-align: center; border: 1px solid black;"></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div style="margin-top: 80px; display: flex; justify-content: space-around;">
+        <div style="border-top: 1px solid black; width: 220px; text-align: center; padding-top: 5px;">Entregué Conforme</div>
+        <div style="border-top: 1px solid black; width: 220px; text-align: center; padding-top: 5px;">Recibí Conforme</div>
+    </div>
+</div>
+
+<script>
+    function agregarFila() {
+        const container = document.getElementById('items-container');
+        const div = document.createElement('div');
+        div.className = 'input-group';
+        div.innerHTML = `
+            <input type="text" class="item-desc" placeholder="Descripción" oninput="sincronizar()">
+            <input type="number" class="item-valor" style="width: 150px;" placeholder="Monto C$" oninput="sincronizar()">
+            <button class="btn-del" onclick="eliminarFila(this)">X</button>
+        `;
+        container.appendChild(div);
+        sincronizar();
+    }
+
+    function eliminarFila(btn) {
+        const filas = document.getElementsByClassName('input-group');
+        // No permitir eliminar si solo queda una fila
+        if (filas.length > 1) {
+            btn.parentElement.remove();
+            sincronizar();
+        } else {
+            // Si es la última, solo limpiar los campos
+            btn.parentElement.querySelector('.item-desc').value = '';
+            btn.parentElement.querySelector('.item-valor').value = '';
+            sincronizar();
+        }
+    }
+
+    function sincronizar() {
+        document.getElementById('out-cliente').innerText = document.getElementById('in-cliente').value;
+        document.getElementById('out-dir').innerText = document.getElementById('in-dir').value;
+
+        const descripciones = document.getElementsByClassName('item-desc');
+        const valores = document.getElementsByClassName('item-valor');
+        const tablaCuerpo = document.getElementById('tabla-cuerpo');
+        
+        tablaCuerpo.innerHTML = ''; 
+        let total = 0;
+
+        for (let i = 0; i < descripciones.length; i++) {
+            const desc = descripciones[i].value;
+            const valor = parseFloat(valores[i].value) || 0;
+            
+            if (desc.trim() !== "" || valor > 0) {
+                total += valor;
+                tablaCuerpo.innerHTML += `<tr>
+                    <td></td>
+                    <td>${desc}</td>
+                    <td></td>
+                    <td style="text-align: center;">C$${valor.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                </tr>`;
+            }
+        }
+        document.getElementById('out-total').innerText = 'C$' + total.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+
+    const hoy = new Date();
+    document.getElementById('out-fecha').innerText = hoy.getDate().toString().padStart(2, '0') + '/' + (hoy.getMonth() + 1).toString().padStart(2, '0') + '/' + hoy.getFullYear();
+</script>
+
+</body>
+</html>
